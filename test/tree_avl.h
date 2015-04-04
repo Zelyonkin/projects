@@ -48,7 +48,7 @@ public:
 
     int depth(EBranch branch) const
     {
-        return m_child[branch] ? 0 : m_child[branch]->m_depth;
+        return m_child[branch] ? m_child[branch]->m_depth : 0;
     }
 
     int balance() const { return depth(eLeft) - depth(eRight); }
