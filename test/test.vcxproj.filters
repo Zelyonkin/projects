@@ -14,7 +14,7 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="avl_tree.h">
+    <ClInclude Include="tree_avl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

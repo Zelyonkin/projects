@@ -147,7 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="avl_tree.h" />
+    <ClInclude Include="tree_avl.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
