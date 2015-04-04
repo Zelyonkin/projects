@@ -1,4 +1,6 @@
-ipch/test-2cefa7e9/test-e10193ea.ipch
+ipch/*
 *.ipch
 projects.sdf
 *.suo
+bin/*
+*.opensdf
