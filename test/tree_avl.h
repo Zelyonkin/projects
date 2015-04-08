@@ -23,7 +23,8 @@ public:
 
 public:
 
-    TreeNode(const Key& key) : m_key(key), m_height(0), m_parent(NULL) { m_child[eLeft] = m_child[eRight] = NULL; }
+    TreeNode(const Key& key) : m_key(key), m_height(1), m_parent(NULL) { m_child[eLeft] = m_child[eRight] = NULL; }
+    ~TreeNode() { delete m_child[0]; delete m_child[1]; }
 
     // access to node height and balance
     int height(EBranch branch) const { return m_child[branch] ? m_child[branch]->m_height : 0; }
@@ -48,19 +49,69 @@ template<class Key, class Val> class Tree
 public:
     typedef int(*t_fnCompare)(const Key& a, const Key& b);
     typedef TreeNode<Key, Val> Node;
+
+public:
+    class Iterator
+    {       
+        friend class Tree<Key, Val>;
+    public:
+        explicit Iterator(Node* node) : m_node(node) {}
+        bool next()
+        {
+            if(!m_node)
+                return false;
+
+            // minimal element in right branch
+            if(m_node->right())
+            {
+                m_node = m_node->right();
+                while(m_node->left())
+                    m_node = m_node->left();
+                return m_node != NULL;
+            }
+
+            // parent node
+            Node* pParent = m_node->parent();
+            while(pParent && pParent->right() == m_node)
+            {
+                m_node = pParent;
+                pParent = m_node->parent();
+            }
+            m_node = pParent;
+            return m_node != NULL;
+        }
+
+        bool isEnd() const { return m_node == NULL; }
+
+        const Key& key() const { return m_node->m_key; }
+        Val& value() { return m_node->m_value; }
+
+    private:
+        Node* m_node;
+    };
     
     // constructor/destructor
     explicit Tree(t_fnCompare fnCmp = NULL) : m_root(NULL), m_fnCmp(fnCmp ? fnCmp : defCompFunc<Key>) {}
-    virtual ~Tree() {}
+    virtual ~Tree() { delete m_root; }
 
     // standard tree functionality
     Val* find(const Key& key);
     const Val* find(const Key& key) const;
-    void remove(const Key& key);
+    void erase(const Key& key);
     void insert(const Key& key, const Val& val);
+    void insert(const std::pair<Key, Val>& pair) { insert(pair.first, pair.second); }
 
+    Iterator begin()
+    {
+        if(!m_root)
+            return Iterator(NULL);
+        Node* pNode = m_root;
+        while(pNode->left())
+            pNode = pNode->left();
+        return Iterator(pNode);
+    }
 #ifdef _DEBUG
-    void saveToGv(const char* sFile) const;
+    void saveToGv(const char* sFile);
 #endif
 
 private:
@@ -105,7 +156,7 @@ bool Tree<Key, Val>::find_imp(Node*& pNode, const Key& key) const
     pNode = m_root;
     while(pNode)
     {
-        const int cmp = m_fnCmp(pNode->m_key, key);
+        const int cmp = m_fnCmp(key, pNode->m_key);
         if(cmp < 0)
         {
             if(!pNode->left())
@@ -141,7 +192,7 @@ TreeNode<Key, Val>& Tree<Key, Val>::node_imp(const Key& key)
     }
 
     // pNode - is a parent, create new child;
-    const int cmp = m_fnCmp(pNode->m_key, key);
+    const int cmp = m_fnCmp(key, pNode->m_key);
     assert(cmp != 0);
     Node* pChild = new Node(key);
     setChild(*pNode, *pChild, cmp < 0 ? Node::eLeft : Node::eRight);
@@ -155,7 +206,7 @@ template<class Key, class Val>
 void Tree<Key, Val>::setChild(Node& parent, Node& child, typename Node::EBranch b) const
 {
     assert(!parent.m_child[b]);
-    assert(b == Node::eLeft ? m_fnCmp(parent.m_key, child.m_key) < 0 : m_fnCmp(parent.m_key, child.m_key) > 0);
+    assert(b == Node::eLeft ? m_fnCmp(child.m_key, parent.m_key) < 0 : m_fnCmp(child.m_key, parent.m_key) > 0);
     parent.m_child[b] = &child;
     child.m_parent = &parent;
 }
@@ -174,7 +225,7 @@ void Tree<Key, Val>::moveChild(Node& from, typename Node::EBranch bf, Node& to, 
     if(to.m_child[bt])
     {
         to.m_child[bt]->m_parent = &to;
-        assert(bt == Node::eLeft ? m_fnCmp(to.m_key, to.m_child[bt]->m_key) < 0 : m_fnCmp(to.m_key, to.m_child[bt]->m_key) > 0);
+        assert(bt == Node::eLeft ? m_fnCmp(to.m_child[bt]->m_key, to.m_key) < 0 : m_fnCmp(to.m_child[bt]->m_key, to.m_key) > 0);
     }
 }
 
@@ -195,7 +246,7 @@ void Tree<Key, Val>::moveChild(Node& parent, typename Node::EBranch b, Node& nod
     }
 }
 
-template<class Key, class Val> void Tree<Key, Val>::remove(const Key& key)
+template<class Key, class Val> void Tree<Key, Val>::erase(const Key& key)
 {
     // empty tree
     if(!m_root)
@@ -240,6 +291,7 @@ template<class Key, class Val> void Tree<Key, Val>::remove(const Key& key)
     }
 
     // destroy node
+    assert(pNode->left() == NULL && pNode->right() == NULL && pNode->parent() == NULL);
     delete pNode;
 
     // update tree balance
@@ -249,19 +301,36 @@ template<class Key, class Val> void Tree<Key, Val>::remove(const Key& key)
 
 #ifdef _DEBUG
 template<class Key, class Val> 
-void Tree<Key, Val>::saveToGv(const char* sFile) const
+void Tree<Key, Val>::saveToGv(const char* sFile)
 {
     std::fstream file;
-    file.open(sFile, ios_base::out | ios_base::trunc);
+    file.open(sFile, std::ios_base::out | std::ios_base::trunc);
 
+    file << "digraph tree\n{";
+    
+    // list of nods with labels
+    for(Tree<int, int>::Iterator it = begin(); !it.isEnd(); it.next())
+        file << "\n node_" << it.key() << " [label=\"" << it.key() << " h" << int(it.m_node->m_height) << " b" << it.m_node->balance() << "\"];";
+
+    file << "\n";
+    for(Tree<int, int>::Iterator it = begin(); !it.isEnd(); it.next())
+    {
+        Node* node = it.m_node;
+        if(it.m_node->left())
+            file << "\n node_" << it.m_node->m_key << " -> node_" << it.m_node->left()->m_key;
+        if(it.m_node->right())
+            file << "\n node_" << it.m_node->m_key << " -> node_" << it.m_node->right()->m_key;
+    }
+    file << "\n}";
 }
+#endif
 
 template<class Key, class Val> 
 TreeNode<Key, Val>* Tree<Key, Val>::rotate_left(Node& node)
 {
     Node& right = *node.right();
-    moveChild(right, Node::eLeft, node, Node::eRight);
     moveChild(node, Node::eRight, node);
+    moveChild(right, Node::eLeft, node, Node::eRight);
     setChild(right, node, Node::eLeft);
     
     node.update_height();
@@ -273,8 +342,8 @@ template<class Key, class Val>
 TreeNode<Key, Val>* Tree<Key, Val>::rotate_right(Node& node)
 {
     Node& left = *node.left();
-    moveChild(left, Node::eRight, node, Node::eLeft);
     moveChild(node, Node::eLeft, node);
+    moveChild(left, Node::eRight, node, Node::eLeft);
     setChild(left, node, Node::eRight);
 
     node.update_height();
@@ -282,30 +351,28 @@ TreeNode<Key, Val>* Tree<Key, Val>::rotate_right(Node& node)
     return &left;
 }
 
-template<class Key, class Val> 
+template<class Key, class Val>
 void Tree<Key, Val>::update_balance(Node& node)
 {
-    for(Node* pNode = &node; pNode; )
+    for(Node* pNode = &node; pNode;)
     {
         // update node balance
         pNode->update_height();
 
         // rebalance
-        if(pNode->balance() == 2)
+        if(pNode->balance() == -2)
         {
-            if(pNode->right() && pNode->right()->balance() < 0)
+            if(pNode->right() && pNode->right()->balance() > 0)
                 rotate_right(*pNode->right());
             pNode = rotate_left(*pNode);
         }
-        else if(pNode->balance() == -2)
+        else if(pNode->balance() == 2)
         {
-            if(pNode->left() && pNode->left()->balance() > 0)
+            if(pNode->left() && pNode->left()->balance() < 0)
                 rotate_left(*pNode->left());
             pNode = rotate_right(*pNode);
         }
-        else 
-            break;
+        else
+            pNode = pNode->parent();
     }
 }
-
-#endif
