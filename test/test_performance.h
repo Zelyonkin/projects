@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#pragma once
 #include "tree_avl.h"
 #include <vector>
 #include <random>
@@ -55,7 +55,7 @@ template<class Tree> void test_peformance(double& insert, double& find, double& 
     remove = time.stop();
 }
 
-void compare_repformance(int nKey, bool bShuffle)
+void test_peformance(int nKey, bool bShuffle)
 {
     // prepare data
     std::vector<int> aKey(nKey);
@@ -84,48 +84,4 @@ void compare_repformance(int nKey, bool bShuffle)
 
     std::cout << "\nDifference:\n insert=" << insert_std / insert << " find=" << find_std / find << " remove=" << remove_std / remove;
     std::cout << "\n****\n\n";
-}
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-#if 0
-    compare_repformance(100000, true);
-    compare_repformance(100000, false);
-#endif
-    
-    // generate random set of keys and values
-    const int nValue = 10000;
-    std::vector<int> aKey(nValue);
-    {
-        for(int i = 0; i < nValue; ++i)
-            aKey[i] = i;
-
-        std::random_device device;
-        std::default_random_engine generator(device());
-        generator.seed(10);
-        std::shuffle(aKey.begin(), aKey.end(), generator);
-    }
-
-    Tree<int, int> tree;
-
-    // insert data into the tree
-    for(int i = 0; i < nValue; ++i)
-        tree.insert(aKey[i], i);
-
-    // find
-    for(int i = 0; i < nValue; ++i)
-    {
-        const int* pVal = tree.find(aKey[i]);
-        assert(pVal && *pVal == aVal[i]);
-    }
-
-#ifdef _DEBUG
-    tree.saveToGv("c:/projects/3dv/doc/sdk/tree.dot");
-#endif
-
-    // remove
-    for(int i = 0; i < nValue; ++i)
-        tree.erase(aKey[i]);
-
-    return 0;
 }

@@ -1,9 +1,7 @@
+#pragma once
 #include <assert.h>
 #include <algorithm>
-
-#ifdef _DEBUG
 #include <fstream>
-#endif
 
 template<class T> int defCompFunc(const T& a, const T& b)
 {
@@ -100,7 +98,8 @@ public:
     void erase(const Key& key);
     void insert(const Key& key, const Val& val);
     void insert(const std::pair<Key, Val>& pair) { insert(pair.first, pair.second); }
-
+    Val& operator[](const Key& key) { return node_imp(key).m_value; }
+    
     Iterator begin()
     {
         if(!m_root)
@@ -110,9 +109,7 @@ public:
             pNode = pNode->left();
         return Iterator(pNode);
     }
-#ifdef _DEBUG
-    void saveToGv(const char* sFile);
-#endif
+    void saveToGv(const wchar_t* sFile);
 
 private:
     Node& node_imp(const Key& key);
@@ -301,9 +298,15 @@ template<class Key, class Val> void Tree<Key, Val>::erase(const Key& key)
         update_balance(*pNodeUpdate);
 }
 
-#ifdef _DEBUG
-template<class Key, class Val> 
-void Tree<Key, Val>::saveToGv(const char* sFile)
+/// <summary> 
+/// Saves the tree to graphviz-format file. 
+/// This file may be converted to .pdf or .png using graphviz utility. 
+/// Example of command line to convert file to .png: "%GRAPHVIZ%\release\bin\dot.exe -Kdot -Gratio=0.6 -Gsplines=true -Nfontsize=20 -Tpng [file_name] -O"
+/// </summary>
+/// <param name="sFile"> in. The output file name. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val>
+void Tree<Key, Val>::saveToGv(const wchar_t* sFile)
 {
     std::fstream file;
     file.open(sFile, std::ios_base::out | std::ios_base::trunc);
@@ -325,7 +328,6 @@ void Tree<Key, Val>::saveToGv(const char* sFile)
     }
     file << "\n}";
 }
-#endif
 
 template<class Key, class Val> 
 TreeNode<Key, Val>* Tree<Key, Val>::rotate_left(Node& node)
