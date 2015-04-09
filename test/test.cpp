@@ -95,10 +95,10 @@ int _tmain(int argc, _TCHAR* argv[])
     
     // generate random set of keys and values
     const int nValue = 10000;
-    std::vector<int> aKey(nValue), aVal(nValue);
+    std::vector<int> aKey(nValue);
     {
         for(int i = 0; i < nValue; ++i)
-            aKey[i] = aVal[i] = i;
+            aKey[i] = i;
 
         std::random_device device;
         std::default_random_engine generator(device());
@@ -110,7 +110,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
     // insert data into the tree
     for(int i = 0; i < nValue; ++i)
-        tree.insert(aKey[i], aVal[i]);
+        tree.insert(aKey[i], i);
 
     // find
     for(int i = 0; i < nValue; ++i)
