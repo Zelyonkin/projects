@@ -30,36 +30,29 @@ private:
     clock_t m_time; 
 };
 
-template<class Tree> void test_peformance(double& insert, double& find, double& remove, double& destroy, const std::vector<int>& aKey)
+template<class Tree> void test_peformance(double& insert, double& find, double& remove, const std::vector<int>& aKey)
 {
     // tree to be tested
     Timing time;
-    Tree* tree = new Tree;
+    Tree tree;
 
     // insert data into the tree
     time.start();
     for(size_t i = 0, n = aKey.size(); i < n; ++i)
-        tree->insert(std::make_pair(aKey[i], (int)i));
+        tree.insert(std::make_pair(aKey[i], (int)i));
     insert = time.stop();
 
     // search data in the tree
     time.start();
     for(size_t i = 0, n = aKey.size(); i < n; ++i)
-        tree->find(aKey[i]);
+        tree.find(aKey[i]);
     find = time.stop();
 
     // remove data from the tree
     time.start();
-#if 0
     for(size_t i = 0, n = aKey.size(); i < n; ++i)
-        tree->erase(aKey[i]);
-#endif
+        tree.erase(aKey[i]);
     remove = time.stop();
-
-    // destroy the tree
-    time.start();
-    delete tree;
-    destroy = time.stop();
 }
 
 void compare_repformance(int nKey, bool bShuffle)
@@ -81,15 +74,15 @@ void compare_repformance(int nKey, bool bShuffle)
     // test
     std::cout << "Compare performance with std::map. Number of elements: " << aKey.size() << ", order: " << (bShuffle ? "shuffled." : "consecutive.");
    
-    double insert, find, remove, destroy;
-    test_peformance<Tree<int, int>>(insert, find, remove, destroy, aKey);
-    std::cout << "\nTree timing:\n insert=" << insert << " sec, find=" << find << " sec, remove=" << remove << " sec, destroy=" << destroy << " sec" ;
+    double insert, find, remove;
+    test_peformance<Tree<int, int>>(insert, find, remove, aKey);
+    std::cout << "\nTree timing:\n insert=" << insert << " sec, find=" << find << " sec, remove=" << remove << " sec";
 
-    double insert_std, find_std, remove_std, destroy_std;
-    test_peformance<std::map<int, int>>(insert_std, find_std, remove_std, destroy_std, aKey);
-    std::cout << "\nstd::map timing:\n insert=" << insert_std << " sec, find=" << find_std << " sec, remove=" << remove_std << " sec, destroy=" << destroy_std << " sec" ;
+    double insert_std, find_std, remove_std;
+    test_peformance<std::map<int, int>>(insert_std, find_std, remove_std, aKey);
+    std::cout << "\nstd::map timing:\n insert=" << insert_std << " sec, find=" << find_std << " sec, remove=" << remove_std << " sec";
 
-    std::cout << "\nDifference:\n insert=" << insert_std / insert << " find=" << find_std / find << " remove=" << remove_std / remove << " destroy=" << destroy_std / destroy;
+    std::cout << "\nDifference:\n insert=" << insert_std / insert << " find=" << find_std / find << " remove=" << remove_std / remove;
     std::cout << "\n****\n\n";
 }
 
@@ -130,11 +123,9 @@ int _tmain(int argc, _TCHAR* argv[])
     tree.saveToGv("c:/projects/3dv/doc/sdk/tree.dot");
 #endif
 
-#if 0
     // remove
     for(int i = 0; i < nValue; ++i)
-        tree.remove(aKey[i]);
-#endif
+        tree.erase(aKey[i]);
 
     return 0;
 }

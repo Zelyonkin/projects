@@ -241,7 +241,8 @@ void Tree<Key, Val>::moveChild(Node& parent, typename Node::EBranch b, Node& nod
     {
         // node is root
         m_root = parent.m_child[b];
-        m_root->m_parent = NULL;
+        if(m_root)
+            m_root->m_parent = NULL;
         parent.m_child[b] = NULL;
     }
 }
@@ -262,23 +263,24 @@ template<class Key, class Val> void Tree<Key, Val>::erase(const Key& key)
     if(Node* pMin = pNode->right())
     {
         // search for minimal node in right branch
+        const Node::EBranch branchMin = pMin->left() ? Node::eLeft : Node::eRight;
         while(pMin->left())
             pMin = pMin->left();
         
         Node& parentMin = *pMin->parent();
 
         // replace pNode by pMin
-        moveChild(parentMin, Node::eLeft, *pNode);
+        moveChild(parentMin, branchMin, *pNode);
 
         // replace pMin by pMin->right
-        moveChild(*pMin, Node::eRight, parentMin, Node::eLeft);
+        moveChild(*pMin, Node::eRight, parentMin, branchMin);
 
         // move children from pNode to pMin
         moveChild(*pNode, Node::eLeft, *pMin, Node::eLeft);
         moveChild(*pNode, Node::eRight, *pMin, Node::eRight);
 
         // update balance starting from parent of pMin
-        pNodeUpdate = &parentMin;
+        pNodeUpdate = pMin;
     }
     else
     {
