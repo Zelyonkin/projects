@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <fstream>
 
+/// <summary> The default keys comparison function. </summary>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
 template<class T> int defCompFunc(const T& a, const T& b)
 {
     if(a < b)
@@ -12,15 +14,15 @@ template<class T> int defCompFunc(const T& a, const T& b)
     return 0;
 }
 
+/// <summary> Implements tree node, contains pair of value and key. </summary>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
 template<class Key, class Val> class TreeNode
 {
 public:
-
     // Enumeration for manupulations with left/right children of the node
     enum EBranch { eLeft = 0, eRight = 1 };
 
 public:
-
     TreeNode(const Key& key) : m_key(key), m_height(1), m_parent(NULL) { m_child[eLeft] = m_child[eRight] = NULL; }
     ~TreeNode() { delete m_child[0]; delete m_child[1]; }
 
@@ -46,6 +48,8 @@ public:
     const Key m_key;
 };
 
+/// <summary> The AVL tree itemplate implementation: balanced binary tree. </summary>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
 template<class Key, class Val> class Tree
 {
 public:
@@ -53,73 +57,99 @@ public:
     typedef TreeNode<Key, Val> Node;
 
 public:
+    /// <summary> Tree iterator. </summary>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     class Iterator
     {       
         friend class Tree<Key, Val>;
     public:
+
+        /// <summary> Constructor </summary>
+        /// <remarks> Author: Vladimir Zelyonkin </remarks>
         explicit Iterator(Node* node) : m_node(node) {}
-        bool next()
-        {
-            if(!m_node)
-                return false;
+        
+        /// <summary> Moves iterator to next node in the tree. </summary>
+        /// <returns> True if the curent node isn't end </returns>
+        /// <remarks> Author: Vladimir Zelyonkin </remarks>
+        bool next();
 
-            // minimal element in right branch
-            if(m_node->right())
-            {
-                m_node = m_node->right();
-                while(m_node->left())
-                    m_node = m_node->left();
-                return m_node != NULL;
-            }
-
-            // parent node
-            Node* pParent = m_node->parent();
-            while(pParent && pParent->right() == m_node)
-            {
-                m_node = pParent;
-                pParent = m_node->parent();
-            }
-            m_node = pParent;
-            return m_node != NULL;
-        }
-
+        /// <summary> Checks whether the node is end node of the tree. </summary>
+        /// <remarks> Author: Vladimir Zelyonkin </remarks>
         bool isEnd() const { return m_node == NULL; }
 
+        /// <summary> Queries the node key. </summary>
+        /// <remarks> Author: Vladimir Zelyonkin </remarks>
         const Key& key() const { return m_node->m_key; }
+
+        /// <summary> Accesses the node value. </summary>
+        /// <remarks> Author: Vladimir Zelyonkin </remarks>
         Val& value() { return m_node->m_value; }
 
     private:
         Node* m_node;
     };
     
-    // constructor/destructor
+    /// <summary> Constructor </summary>
+    /// <param name="fnCmp"> in. Optional. Pointer to function for comparison of keys. </param>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     explicit Tree(t_fnCompare fnCmp = NULL) : m_root(NULL), m_fnCmp(fnCmp ? fnCmp : defCompFunc<Key>) {}
+
+    /// <summary> Destructor </summary>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     virtual ~Tree() { delete m_root; }
 
-    // standard tree functionality
+    /// <summary> Searches for node with specified key. </summary>
+    /// <returns> Pointer to node value, NULL if specified key isn't found in the tree. </returns>
+    /// <param name="key"> in. The key of node to be found. </param>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     Val* find(const Key& key);
+
+    /// <summary> Searches for node with specified key. </summary>
+    /// <returns> Pointer to node value, NULL if specified key isn't found in the tree. </returns>
+    /// <param name="key"> in. The key of node to be found. </param>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     const Val* find(const Key& key) const;
+    
+    /// <summary> Removes node with specified key from the tree. </summary>
+    /// <param name="key"> in. The key of node to be removed. </param>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     void erase(const Key& key);
+
+    /// <summary> Inserts new node into the tree. </summary>
+    /// <param name="key"> in. The node key. </param>
+    /// <param name="val"> in. The node value. </param>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     void insert(const Key& key, const Val& val);
+
+    /// <summary> Inserts new node into the tree. </summary>
+    /// <param name="pair"> in. The node key and value. </param>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     void insert(const std::pair<Key, Val>& pair) { insert(pair.first, pair.second); }
+    
+    /// <summary> Accesses the node value by its key. Important: if node with specified key isn't exists in tree - node with default value will be inserted. </summary>
+    /// <returns> The reference to node value. </returns>
+    /// <param name="key"> in. The key of node to be found. </param>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     Val& operator[](const Key& key) { return node_imp(key).m_value; }
     
-    Iterator begin()
-    {
-        if(!m_root)
-            return Iterator(NULL);
-        Node* pNode = m_root;
-        while(pNode->left())
-            pNode = pNode->left();
-        return Iterator(pNode);
-    }
+    /// <summary> Queries the tree iterator. </summary>
+    /// <returns> The iteraror. </returns>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
+    Iterator begin();
+
+    /// <summary> 
+    /// Saves the tree to graphviz-format file. 
+    /// This file may be converted to .pdf or .png using graphviz utility. 
+    /// Example of command line to convert file to .png: "%GRAPHVIZ%\release\bin\dot.exe -Kdot -Gratio=0.6 -Gsplines=true -Nfontsize=20 -Tpng [file_name] -O"
+    /// </summary>
+    /// <param name="sFile"> in. The output file name. </param>
+    /// <remarks> Author: Vladimir Zelyonkin </remarks>
     void saveToGv(const char* sFile);
 
 private:
-    Node& node_imp(const Key& key);
     bool find_imp(Node*& pNode, const Key& key) const;
+    Node& node_imp(const Key& key);
     void update_balance(Node& node);
-    
     void setChild(Node& parent, Node& child, typename Node::EBranch b) const;
     void moveChild(Node& from, typename Node::EBranch bf, Node& to, typename Node::EBranch bt) const;
     void moveChild(Node& parent, typename Node::EBranch bf, Node& toNode);
@@ -134,28 +164,84 @@ private:
     Node* m_root;
 };
 
-template<class Key, class Val> 
-const Val* Tree<Key, Val>::find(const Key& key) const
+
+/// <summary> Moves iterator to next node in the tree. </summary>
+/// <returns> True if the curent node isn't end </returns>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> bool Tree<Key, Val>::Iterator::next()
+{
+    if(!m_node)
+        return false;
+
+    // minimal element in right branch
+    if(m_node->right())
+    {
+        m_node = m_node->right();
+        while(m_node->left())
+            m_node = m_node->left();
+        return m_node != NULL;
+    }
+
+    // parent node
+    Node* pParent = m_node->parent();
+    while(pParent && pParent->right() == m_node)
+    {
+        m_node = pParent;
+        pParent = m_node->parent();
+    }
+    m_node = pParent;
+    return m_node != NULL;
+}
+
+/// <summary> Queries the tree iterator. </summary>
+/// <returns> The iteraror. </returns>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> typename Tree<Key, Val>::Iterator Tree<Key, Val>::begin()
+{
+    if(!m_root)
+        return Iterator(NULL);
+    Node* pNode = m_root;
+    while(pNode->left())
+        pNode = pNode->left();
+    return Iterator(pNode);
+}
+
+/// <summary> Searches for node with specified key. </summary>
+/// <returns> Pointer to node value, NULL if specified key isn't found in the tree. </returns>
+/// <param name="key"> in. The key of node to be found. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> const Val* Tree<Key, Val>::find(const Key& key) const
 {
     Node* pNode;
     return find_imp(pNode, key) ? &pNode->m_value : NULL;
 }
 
-template<class Key, class Val> 
-Val* Tree<Key, Val>::find(const Key& key)
+
+/// <summary> Searches for node with specified key. </summary>
+/// <returns> Pointer to node value, NULL if specified key isn't found in the tree. </returns>
+/// <param name="key"> in. The key of node to be found. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> Val* Tree<Key, Val>::find(const Key& key)
 {
     Node* pNode;
     return find_imp(pNode, key) ? &pNode->m_value : NULL;
 }
 
-template<class Key, class Val> 
-void Tree<Key, Val>::insert(const Key& key, const Val& val)
+/// <summary> Inserts new node into the tree. </summary>
+/// <param name="key"> in. The node key. </param>
+/// <param name="val"> in. The node value. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> void Tree<Key, Val>::insert(const Key& key, const Val& val)
 {
     node_imp(key).m_value = val;
 }
 
-template<class Key, class Val> 
-bool Tree<Key, Val>::find_imp(Node*& pNode, const Key& key) const
+/// <summary> Searches for node with specified key. </summary>
+/// <returns> True if node found. </returns>
+/// <param name="pNode"> out. Pointer to node if node found, otherwise - pointer to parent node for node to be inserted. </param>
+/// <param name="key"> in. The key to be found. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> bool Tree<Key, Val>::find_imp(Node*& pNode, const Key& key) const
 {
     pNode = m_root;
     while(pNode)
@@ -179,8 +265,11 @@ bool Tree<Key, Val>::find_imp(Node*& pNode, const Key& key) const
     return false;
 }
 
-template<class Key, class Val> 
-TreeNode<Key, Val>& Tree<Key, Val>::node_imp(const Key& key)
+/// <summary> Accesses the node value by its key. Important: if node with specified key isn't exists in tree - node with default value will be inserted. </summary>
+/// <returns> The reference to node. </returns>
+/// <param name="key"> in. The key of node to be found. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> TreeNode<Key, Val>& Tree<Key, Val>::node_imp(const Key& key)
 {
     // search for existing node
     Node* pNode;
@@ -206,8 +295,12 @@ TreeNode<Key, Val>& Tree<Key, Val>::node_imp(const Key& key)
     return *pChild;
 }
 
-template<class Key, class Val>
-void Tree<Key, Val>::setChild(Node& parent, Node& child, typename Node::EBranch b) const
+/// <summary> Sets child for specified parent. </summary>
+/// <param name="parent"> inout. The parent node. </param>
+/// <param name="child"> inout. The child node. </param>
+/// <param name="b"> in. The branch which specified left/right child.  </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> void Tree<Key, Val>::setChild(Node& parent, Node& child, typename Node::EBranch b) const
 {
     assert(!parent.m_child[b]);
     assert(b == Node::eLeft ? m_fnCmp(child.m_key, parent.m_key) < 0 : m_fnCmp(child.m_key, parent.m_key) > 0);
@@ -215,8 +308,13 @@ void Tree<Key, Val>::setChild(Node& parent, Node& child, typename Node::EBranch 
     child.m_parent = &parent;
 }
 
-template<class Key, class Val>
-void Tree<Key, Val>::moveChild(Node& from, typename Node::EBranch bf, Node& to, typename Node::EBranch bt) const
+/// <summary> Moves child from parent to another one. </summary>
+/// <param name="from"> inout. The source parent node. </param>
+/// <param name="bf"> in. The source branch. </param>
+/// <param name="to"> inout. The destination parent node.  </param>
+/// <param name="bt"> in. The destination branch. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> void Tree<Key, Val>::moveChild(Node& from, typename Node::EBranch bf, Node& to, typename Node::EBranch bt) const
 {
     assert(&from != &to);
 
@@ -251,6 +349,9 @@ void Tree<Key, Val>::moveChild(Node& parent, typename Node::EBranch b, Node& nod
     }
 }
 
+/// <summary> Removes node with specified key from the tree. </summary>
+/// <param name="key"> in. The key of node to be removed. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
 template<class Key, class Val> void Tree<Key, Val>::erase(const Key& key)
 {
     // empty tree
