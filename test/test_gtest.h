@@ -30,7 +30,7 @@ protected:
     void test_find()
     {
         // search for each key and compare with corresponding value
-        for(int i = 0, n = m_aKey.size(); i < n; ++i)
+        for(int i = 0, n = (int)m_aKey.size(); i < n; ++i)
         {
             const int val = m_aVal[i];
             const int* pVal = m_tree.find(m_aKey[i]);
@@ -42,7 +42,7 @@ protected:
     void test_erase()
     {
         // erase each key and ensure that corresponding key missed in the tree
-        for(int i = 0, n = m_aKey.size(); i < n; ++i)
+        for(int i = 0, n = (int)m_aKey.size(); i < n; ++i)
         {
             m_tree.erase(m_aKey[i]);
             const int* pVal = m_tree.find(m_aKey[i]);
@@ -109,7 +109,7 @@ TEST_F(Tree_10_shuffled, TestIterator)
     test_iterator();
 }
 
-int main_gtest(int argc, _TCHAR* argv[])
+int main_gtest(int argc, wchar_t* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

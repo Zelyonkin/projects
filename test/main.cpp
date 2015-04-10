@@ -28,7 +28,7 @@ static void generate_tree(const wchar_t* sFile, int nElem, bool bShuffle)
     tree.saveToGv(sFile);
 }
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, wchar_t* argv[])
 {    
     if(argc == 2 && *argv[1] == L'g')
     {
