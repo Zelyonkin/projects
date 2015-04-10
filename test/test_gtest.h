@@ -13,6 +13,9 @@ protected:
         for(int i = 0; i < nKey; ++i)
             m_aKey[i] = m_aVal[i] = i;
 
+        // disable warning "conditional expression is constant"
+#pragma warning(push)
+#pragma warning (disable : 4127)
         // shuffle if need
         if(bShuffle)
         {
@@ -21,6 +24,7 @@ protected:
             generator.seed(nKey);
             std::shuffle(m_aKey.begin(), m_aKey.end(), generator);
         }
+#pragma warning(pop)
 
         // insert data into the tree
         for(int i = 0; i < nKey; ++i)

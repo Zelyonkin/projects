@@ -25,7 +25,7 @@ public:
     ~TreeNode() { delete m_child[0]; delete m_child[1]; }
 
     // access to node height and balance
-    int height(EBranch branch) const { return m_child[branch] ? m_child[branch]->m_height : 0; }
+    unsigned char height(EBranch branch) const { return m_child[branch] ? m_child[branch]->m_height : 0; }
     int balance() const { return height(eLeft) - height(eRight); }
     void update_height() { m_height = 1 + std::max(height(eLeft), height(eRight)); }
 
@@ -33,6 +33,10 @@ public:
     TreeNode* parent() { return m_parent; }
     TreeNode* left() { return m_child[eLeft]; }
     TreeNode* right() { return m_child[eRight]; }
+
+private:
+    // assignment is forbidden
+    TreeNode<Key, Val>& operator=(const TreeNode<Key, Val>&) { return *this; }
 
 public:
     TreeNode* m_parent;
@@ -121,7 +125,10 @@ private:
     void moveChild(Node& parent, typename Node::EBranch bf, Node& toNode);
 
     Node* rotate_left(Node& node);
-    Node* rotate_right(Node& node);    
+    Node* rotate_right(Node& node);  
+
+    // assignment is forbidden
+    Tree<Key, Val>& operator=(const Tree<Key, Val>&) { return *this; }
 private:
     const t_fnCompare m_fnCmp;
     Node* m_root;
@@ -320,7 +327,6 @@ void Tree<Key, Val>::saveToGv(const wchar_t* sFile)
     file << "\n";
     for(Tree<int, int>::Iterator it = begin(); !it.isEnd(); it.next())
     {
-        Node* node = it.m_node;
         if(it.m_node->left())
             file << "\n node_" << it.m_node->m_key << " -> node_" << it.m_node->left()->m_key;
         if(it.m_node->right())

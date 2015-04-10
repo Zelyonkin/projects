@@ -6,7 +6,6 @@
 static void generate_tree(const wchar_t* sFile, int nElem, bool bShuffle)
 {
     // generate set of keys
-    const int nValue = 10000;
     std::vector<int> aKey(nElem);
     for(int i = 0; i < nElem; ++i)
         aKey[i] = i;
