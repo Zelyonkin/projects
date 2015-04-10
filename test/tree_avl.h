@@ -23,6 +23,7 @@ public:
     enum EBranch { eLeft = 0, eRight = 1 };
 
 public:
+    // constructor/destructor
     TreeNode(const Key& key) : m_key(key), m_height(1), m_parent(NULL) { m_child[eLeft] = m_child[eRight] = NULL; }
     ~TreeNode() { delete m_child[0]; delete m_child[1]; }
 
@@ -31,7 +32,7 @@ public:
     int balance() const { return height(eLeft) - height(eRight); }
     void update_height() { m_height = 1 + std::max(height(eLeft), height(eRight)); }
 
-    // access to parent/left/right
+    // access to parent/left/right nodes
     TreeNode* parent() { return m_parent; }
     TreeNode* left() { return m_child[eLeft]; }
     TreeNode* right() { return m_child[eRight]; }
@@ -41,10 +42,15 @@ private:
     TreeNode<Key, Val>& operator=(const TreeNode<Key, Val>&) { return *this; }
 
 public:
+    // parent node
     TreeNode* m_parent;
+    // left/fight child
     TreeNode* m_child[2];
+    // height of the node in tree (for an empty node height = 1) 
     unsigned char m_height;
+    // node value
     Val m_value;
+    // node key
     const Key m_key;
 };
 
@@ -152,8 +158,7 @@ private:
     void update_balance(Node& node);
     void setChild(Node& parent, Node& child, typename Node::EBranch b) const;
     void moveChild(Node& from, typename Node::EBranch bf, Node& to, typename Node::EBranch bt) const;
-    void moveChild(Node& parent, typename Node::EBranch bf, Node& toNode);
-
+    void moveNode(Node& parent, typename Node::EBranch bf, Node& toNode);
     Node* rotate_left(Node& node);
     Node* rotate_right(Node& node);  
 
@@ -331,8 +336,12 @@ template<class Key, class Val> void Tree<Key, Val>::moveChild(Node& from, typena
     }
 }
 
-template<class Key, class Val>
-void Tree<Key, Val>::moveChild(Node& parent, typename Node::EBranch b, Node& node)
+/// <summary> Moves node to specified parent. </summary>
+/// <param name="parent"> inout. The destination parent node. </param>
+/// <param name="bt"> in. The destination branch. </param>
+/// <param name="node"> inout. The node to be moved. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> void Tree<Key, Val>::moveNode(Node& parent, typename Node::EBranch b, Node& node)
 {
     if(Node* pParentTo = node.parent())
     {
@@ -375,7 +384,7 @@ template<class Key, class Val> void Tree<Key, Val>::erase(const Key& key)
         Node& parentMin = *pMin->parent();
 
         // replace pNode by pMin
-        moveChild(parentMin, branchMin, *pNode);
+        moveNode(parentMin, branchMin, *pNode);
 
         // replace pMin by pMin->right
         moveChild(*pMin, Node::eRight, parentMin, branchMin);
@@ -393,8 +402,7 @@ template<class Key, class Val> void Tree<Key, Val>::erase(const Key& key)
         pNodeUpdate = pNode->parent();
 
         // if right branch is empty, replace pNode by left child
-        moveChild(*pNode, Node::eLeft, *pNode);
-
+        moveNode(*pNode, Node::eLeft, *pNode);
     }
 
     // destroy node
@@ -413,18 +421,18 @@ template<class Key, class Val> void Tree<Key, Val>::erase(const Key& key)
 /// </summary>
 /// <param name="sFile"> in. The output file name. </param>
 /// <remarks> Author: Vladimir Zelyonkin </remarks>
-template<class Key, class Val>
-void Tree<Key, Val>::saveToGv(const char* sFile)
+template<class Key, class Val> void Tree<Key, Val>::saveToGv(const char* sFile)
 {
     std::fstream file;
     file.open(sFile, std::ios_base::out | std::ios_base::trunc);
 
     file << "digraph tree\n{";
     
-    // list of nods with labels
+    // list of nodes with labels
     for(Tree<int, int>::Iterator it = begin(); !it.isEnd(); it.next())
         file << "\n node_" << it.key() << " [label=\"" << it.key() << " h" << int(it.m_node->m_height) << " b" << it.m_node->balance() << "\"];";
 
+    // lenks between nodes
     file << "\n";
     for(Tree<int, int>::Iterator it = begin(); !it.isEnd(); it.next())
     {
@@ -436,11 +444,14 @@ void Tree<Key, Val>::saveToGv(const char* sFile)
     file << "\n}";
 }
 
-template<class Key, class Val> 
-TreeNode<Key, Val>* Tree<Key, Val>::rotate_left(Node& node)
+/// <summary> Makes small left rotation around the specified node. </summary>
+/// <returns> The pointer to new root node. </returns>
+/// <param name="node"> in. The node to be balanced. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> TreeNode<Key, Val>* Tree<Key, Val>::rotate_left(Node& node)
 {
     Node& right = *node.right();
-    moveChild(node, Node::eRight, node);
+    moveNode(node, Node::eRight, node);
     moveChild(right, Node::eLeft, node, Node::eRight);
     setChild(right, node, Node::eLeft);
     
@@ -449,11 +460,14 @@ TreeNode<Key, Val>* Tree<Key, Val>::rotate_left(Node& node)
     return &right;
 }
 
-template<class Key, class Val> 
-TreeNode<Key, Val>* Tree<Key, Val>::rotate_right(Node& node)
+/// <summary> Makes small right rotation around the specified node. </summary>
+/// <returns> The pointer to new root node. </returns>
+/// <param name="node"> in. The node to be balanced. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> TreeNode<Key, Val>* Tree<Key, Val>::rotate_right(Node& node)
 {
     Node& left = *node.left();
-    moveChild(node, Node::eLeft, node);
+    moveNode(node, Node::eLeft, node);
     moveChild(left, Node::eRight, node, Node::eLeft);
     setChild(left, node, Node::eRight);
 
@@ -462,8 +476,10 @@ TreeNode<Key, Val>* Tree<Key, Val>::rotate_right(Node& node)
     return &left;
 }
 
-template<class Key, class Val>
-void Tree<Key, Val>::update_balance(Node& node)
+/// <summary> Perofrms balancing of the tree from the specified node till root. </summary>
+/// <param name="node"> in. The node to be balanced. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
+template<class Key, class Val> void Tree<Key, Val>::update_balance(Node& node)
 {
     for(Node* pNode = &node; pNode;)
     {

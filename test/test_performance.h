@@ -6,6 +6,8 @@
 #include <time.h>
 #include <map>
 
+/// <summary> Helper class to keep time </summary>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
 class Timing
 {
 public:
@@ -30,6 +32,9 @@ private:
     clock_t m_time; 
 };
 
+/// <summary> Tests tree pefrormance </summary>
+/// <param name="aKey"> in. Initial set of keys. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
 template<class Tree> void test_peformance(double& insert, double& find, double& remove, const std::vector<int>& aKey)
 {
     // tree to be tested
@@ -55,6 +60,10 @@ template<class Tree> void test_peformance(double& insert, double& find, double& 
     remove = time.stop();
 }
 
+/// <summary> Teste tree prfrormance </summary>
+/// <param name="nKey"> in. Number of keys to be insertd in the tree. </param>
+/// <param name="bShuffle"> in. Indicates whether keys should be shuffled befor inserting in the tree. </param>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
 void test_peformance(int nKey, bool bShuffle)
 {
     // prepare data

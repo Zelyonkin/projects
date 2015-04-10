@@ -2,6 +2,8 @@
 #include "gtest\gtest.h"
 #include "tree_avl.h"
 
+/// <summary> Testing fixture for TTree. </summary>
+/// <remarks> Author: Vladimir Zelyonkin </remarks>
 template<int nKey, bool bShuffle> class TestTree : public ::testing::Test
 {
 protected:
