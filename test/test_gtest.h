@@ -113,7 +113,7 @@ TEST_F(Tree_10_shuffled, TestIterator)
     test_iterator();
 }
 
-int main_gtest(int argc, wchar_t* argv[])
+int main_gtest(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

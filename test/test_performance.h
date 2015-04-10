@@ -83,5 +83,5 @@ void test_peformance(int nKey, bool bShuffle)
     std::cout << "\nstd::map timing:\n insert=" << insert_std << " sec, find=" << find_std << " sec, remove=" << remove_std << " sec";
 
     std::cout << "\nDifference:\n insert=" << insert_std / insert << " find=" << find_std / find << " remove=" << remove_std / remove;
-    std::cout << "\n****\n\n";
+    std::cout << "\n";
 }

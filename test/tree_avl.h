@@ -113,7 +113,7 @@ public:
             pNode = pNode->left();
         return Iterator(pNode);
     }
-    void saveToGv(const wchar_t* sFile);
+    void saveToGv(const char* sFile);
 
 private:
     Node& node_imp(const Key& key);
@@ -313,7 +313,7 @@ template<class Key, class Val> void Tree<Key, Val>::erase(const Key& key)
 /// <param name="sFile"> in. The output file name. </param>
 /// <remarks> Author: Vladimir Zelyonkin </remarks>
 template<class Key, class Val>
-void Tree<Key, Val>::saveToGv(const wchar_t* sFile)
+void Tree<Key, Val>::saveToGv(const char* sFile)
 {
     std::fstream file;
     file.open(sFile, std::ios_base::out | std::ios_base::trunc);

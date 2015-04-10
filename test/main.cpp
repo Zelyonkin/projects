@@ -3,7 +3,7 @@
 #include "test_performance.h"
 #include <iostream>
 
-static void generate_tree(const wchar_t* sFile, int nElem, bool bShuffle)
+static void generate_tree(const char* sFile, int nElem, bool bShuffle)
 {
     // generate set of keys
     std::vector<int> aKey(nElem);
@@ -27,26 +27,26 @@ static void generate_tree(const wchar_t* sFile, int nElem, bool bShuffle)
     tree.saveToGv(sFile);
 }
 
-int main(int argc, wchar_t* argv[])
+int main(int argc, char* argv[])
 {    
-    if(argc == 2 && *argv[1] == L'g')
+    if(argc == 2 && *argv[1] == 'g')
     {
         // run google test
         return main_gtest(argc, argv);
     }
-    else if(argc == 4 && *argv[1] == L'p')
+    else if(argc == 4 && *argv[1] == 'p')
     {
         // run performance test
-        const int nElem = _wtoi(argv[2]);
-        const bool bShuffle = _wtoi(argv[3]) == 1;
+        const int nElem = atoi(argv[2]);
+        const bool bShuffle = atoi(argv[3]) == 1;
         test_peformance(nElem, bShuffle);
         return 0;
     }
-    else if(argc == 5 && *argv[1] == L's')
+    else if(argc == 5 && *argv[1] == 's')
     {
         // generate tree and save to gv-file
-        const int nElem = _wtoi(argv[2]);
-        const bool bShuffle = _wtoi(argv[3]) == 1;
+        const int nElem = atoi(argv[2]);
+        const bool bShuffle = atoi(argv[3]) == 1;
         generate_tree(argv[4], nElem, bShuffle);
         return 0;
     }
