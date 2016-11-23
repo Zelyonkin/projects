@@ -1,6 +1,6 @@
 ipch/*
 *.ipch
-projects.sdf
+sample.sdf
 *.suo
 bin/*
 *.opensdf
